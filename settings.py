@@ -1,43 +1,154 @@
-WIDTH = 500
-HEIGHT = 500
-GRIDSIZE = 100
-GRIDWIDTH = int(WIDTH/GRIDSIZE)
-GRIDHEIGHT = int(HEIGHT/GRIDSIZE)
+import random
 
-FOCUSX = 0
-FOCUSY = 0
-FPS = 30
-PRINTBUFFER = 6
+width, height = 800, 500
+OFFSET, OFFSET_II, OFFSET_III = 50, 120, 100
+TITLE = "Tile Breaker 2020"
+GAMEBOARD_WIDTH, GAMEBOARD_HEIGHT, GAMEBOARD_INSET, GAMEBOARD_INSET_II = 400, 400, 100, 120
+ARRAY_WIDTH, ARRAY_HEIGHT = 5, 5
+ARRAY_LENGTH = ARRAY_WIDTH * ARRAY_HEIGHT
+GRID_SIZE = int((height - (OFFSET_II)) / ARRAY_WIDTH)
+focus_x, focus_y = 0, 0
+FPS = 60
+BUTTON_SIZE = 40
 
-# define colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
-GREEN = (0, 255, 0)
+GREEN = (0, 180, 0)
 BLUE = (0, 0, 255)
+YELLOW = (255, 255, 0)
 DARK_BLUE = (0, 0, 122)
+DARK_GRAY = (50, 50, 50)
+LIGHT_GRAY = (150, 150, 150)
+DARK_GREEN = (0, 50, 0)
+BGCOLOR = (40, 40, 40)
+TILESIZE = 76
 
-SQUARESIZE = 4
-TOTAL_LENGTH = SQUARESIZE * SQUARESIZE
-MASTERLIST = []
-ARRAY = []
-HORIZONTALLIST = []
+EMPTY_LIST_I = []
+EMPTY_LIST_II = []
+MASTER_LIST = []
+MASTER_ARRAY = []
+SHUFFLED_LIST = []
+SHUFFLED_ARRAY = []
+NEG_DELTA = []
+DELT_TOT = []
 
-ARRAY_WIDTH = 4
-ARRAY_HEIGHT = 4
+DELTAS_LIST = []
+HORIZONTAL_LIST = []
+total = []
+
+move_count = 0
+best_score = 0
+best_time = 0
+game_loop = False
+
+# LISTS SETUP:
+# STEP ONE:
+# creates SHUFFLE LIST and shuffles it.
+# since 'pop' is used; list gets copied into EMPTY LIST to preserve data
+for array_length in range(ARRAY_LENGTH):
+    MASTER_LIST.append(array_length)
+    SHUFFLED_LIST.append(array_length)
+random.shuffle(SHUFFLED_LIST)
+EMPTY_LIST_I = SHUFFLED_LIST.copy()
+EMPTY_LIST_II = MASTER_LIST.copy()
+# STEP TWO - Copies SHUFFLE LIST into SHUFFLE ARRAY
+for array_width in range(ARRAY_WIDTH):
+    SHUFFLED_ARRAY.append([])
+    MASTER_ARRAY.append([])
+    for array_height in range(ARRAY_HEIGHT):
+        pop_array = SHUFFLED_LIST.pop(0)
+        pop_array2 = MASTER_LIST.pop(0)
+        SHUFFLED_ARRAY[array_width].append(pop_array)
+        MASTER_ARRAY[array_width].append(pop_array2)
+SHUFFLED_LIST = EMPTY_LIST_I.copy()
+MASTER_LIST = EMPTY_LIST_II.copy()
+# STEP THREE: sets up Delta between master list index and shuffle list index
+for x in range(ARRAY_LENGTH):
+    nums = abs(
+        x - SHUFFLED_LIST[x])
+    DELTAS_LIST.append(nums)
+total = SHUFFLED_ARRAY.copy()
+for x in range(ARRAY_LENGTH - 1, 0, -1):
+    nums = abs(
+        x - SHUFFLED_LIST[x])
+    NEG_DELTA.append(nums)
+
+# print(MASTER_LIST)
+# print(SHUFFLED_LIST)
+
+# print('')
+# print (DELTAS_LIST)
+# print('')#
+# print(SHUFFLED_ARRAY[0])
+# print(SHUFFLED_ARRAY[1])
+# print(SHUFFLED_ARRAY[2])
+# print(SHUFFLED_ARRAY[3])
+# print(SHUFFLED_ARRAY[4])
+# print('')
+thing = MASTER_ARRAY[0][0]
+START_X = 2
+START_Y = 2
+VERT_DISPLACE = 0
+HORZ_DISPLACE = 0
+if MASTER_ARRAY[0][0] in SHUFFLED_ARRAY[START_Y]:  # Its in the starting middle row
+    if SHUFFLED_ARRAY[START_Y][START_X + HORZ_DISPLACE] == MASTER_ARRAY[0][
+        0]:  # check to see if it is in the middle middle
+        pass
+    else:
+        HORZ_DISPLACE = HORZ_DISPLACE + 1  # move to middle row 2 indexes 1 and 3
+        if SHUFFLED_ARRAY[START_Y][START_X + HORZ_DISPLACE] == MASTER_ARRAY[0][0] or \
+                SHUFFLED_ARRAY[START_Y][START_X - HORZ_DISPLACE] == MASTER_ARRAY[0][0]:
+            pass
+        else:
+            HORZ_DISPLACE = HORZ_DISPLACE + 1
+            pass
+
+elif MASTER_ARRAY[0][0] in SHUFFLED_ARRAY[START_Y + 1] or MASTER_ARRAY[0][0] in SHUFFLED_ARRAY[
+    START_Y - 1]:
+    VERT_DISPLACE = VERT_DISPLACE + 1
+    if SHUFFLED_ARRAY[START_Y + 1][START_X] == MASTER_ARRAY[0][0] or SHUFFLED_ARRAY[START_Y - 1][START_X] == \
+            MASTER_ARRAY[0][0]:
+        pass
+    elif SHUFFLED_ARRAY[START_Y + 1][START_X + 1] == MASTER_ARRAY[0][0] or \
+            SHUFFLED_ARRAY[START_Y + 1][START_X - 1] == MASTER_ARRAY[0][0] or \
+            SHUFFLED_ARRAY[START_Y - 1][START_X + 1] == MASTER_ARRAY[0][0] or \
+            SHUFFLED_ARRAY[START_Y - 1][START_X - 1] == MASTER_ARRAY[0][0]:
+        HORZ_DISPLACE = HORZ_DISPLACE + 1
+        pass
+
+    else:
+        HORZ_DISPLACE = HORZ_DISPLACE + 2
+        pass
 
 
-row01 = [6, 8, 9, 10, 18]
-row02 = [16, 1, 5, 22, 3]
-row03 = [2, 13, 11, 14, 19]
-row04 = [12, 20, 15, 7, 4]
-row05 = [17, 0, 24, 21, 23]
-total = [row01, row02, row03, row04, row05]
 
+elif MASTER_ARRAY[0][0] in SHUFFLED_ARRAY[START_Y + 2] or MASTER_ARRAY[0][0] in SHUFFLED_ARRAY[
+    START_Y - 2]:
+    VERT_DISPLACE = VERT_DISPLACE + 2
 
+    if SHUFFLED_ARRAY[START_Y + 2][START_X] == MASTER_ARRAY[0][
+        0] or SHUFFLED_ARRAY[START_Y - 2][START_X] == MASTER_ARRAY[0][
+        0]:
+        pass
 
+    elif SHUFFLED_ARRAY[START_Y + 2][START_X + 1] == MASTER_ARRAY[0][0] or \
+            SHUFFLED_ARRAY[START_Y + 2][START_X - 1] == MASTER_ARRAY[0][0] or \
+            SHUFFLED_ARRAY[START_Y - 2][START_X + 1] == MASTER_ARRAY[0][0] or \
+            SHUFFLED_ARRAY[START_Y - 2][START_X - 1] == MASTER_ARRAY[0][0]:
+        pass
 
+        HORZ_DISPLACE = HORZ_DISPLACE + 1
+    else:
+        pass
+        HORZ_DISPLACE = HORZ_DISPLACE + 2
 
+print('vert: {}'.format(VERT_DISPLACE))
+print('horz: {}'.format(HORZ_DISPLACE))
 
-
-movecount = 0
+print(SHUFFLED_ARRAY[0])
+print(SHUFFLED_ARRAY[1])
+print(SHUFFLED_ARRAY[2])
+print(SHUFFLED_ARRAY[3])
+print(SHUFFLED_ARRAY[4])
+print('')
